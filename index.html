@@ -67,23 +67,43 @@
     const premiumEmails = ["usuario1@ejemplo.com", "usuario2@ejemplo.com"];
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+
+    function validateEmail(email) {
+      return /\S+@\S+\.\S+/.test(email);
+    }
+
     function login() {
-      const email = document.getElementById('email').value;
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
+
+      if (!validateEmail(email)) {
+        alert("Por favor ingresa un correo válido.");
+        return;
+      }
+
       auth.signInWithEmailAndPassword(email, password)
         .then(() => checkAccess())
         .catch(error => alert(error.message));
     }
+
     function register() {
-      const email = document.getElementById('email').value;
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
+
+      if (!validateEmail(email)) {
+        alert("Por favor ingresa un correo válido.");
+        return;
+      }
+
       auth.createUserWithEmailAndPassword(email, password)
         .then(() => checkAccess())
         .catch(error => alert(error.message));
     }
+
     function logout() {
       auth.signOut().then(() => location.reload());
     }
+
     function checkAccess() {
       const user = auth.currentUser;
       if (user && premiumEmails.includes(user.email)) {
@@ -94,6 +114,7 @@
         document.getElementById('error-section').style.display = 'block';
       }
     }
+
     auth.onAuthStateChanged(user => {
       if (user) checkAccess();
     });
