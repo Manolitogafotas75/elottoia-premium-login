@@ -74,6 +74,7 @@
       return /\S+@\S+\.\S+/.test(email);
     }
 
+    // Función de inicio de sesión
     function login() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
@@ -88,6 +89,7 @@
         .catch(error => alert(error.message));
     }
 
+    // Función de registro
     function register() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
@@ -97,16 +99,43 @@
         return;
       }
 
+      // Crea el nuevo usuario con Firebase Authentication
       auth.createUserWithEmailAndPassword(email, password)
-        .then(() => checkAccess())  // Verifica si tiene acceso premium
-        .catch(error => alert(error.message));
+        .then((userCredential) => {
+          const user = userCredential.user;
+          console.log("Usuario registrado:", user);
+
+          // Después de registrarse, guardar los datos en Firestore
+          saveUserToFirestore(user.uid, email);
+
+          // Luego de registrarse, redirige al login
+          window.location.href = '/login';  // O la URL que desees para el login
+        })
+        .catch((error) => {
+          console.error("Error de registro:", error.message);
+          alert("Error al registrarse. Verifica tu correo y contraseña.");
+        });
     }
 
-    function logout() {
-      auth.signOut().then(() => location.reload());
+    // Función para guardar el usuario en Firestore
+    function saveUserToFirestore(uid, email) {
+      const db = firebase.firestore();
+
+      // Guardamos los datos del usuario en Firestore en la colección "usuarios_premium"
+      db.collection("usuarios_premium").doc(uid).set({
+        email: email,
+        premium: false,  // Inicialmente se establece como false, se actualizará después al confirmar el pago
+        fecha_registro: firebase.firestore.FieldValue.serverTimestamp()  // Guardamos la fecha de registro
+      })
+      .then(() => {
+        console.log("Usuario guardado correctamente en Firestore");
+      })
+      .catch((error) => {
+        console.error("Error al guardar el usuario en Firestore:", error);
+      });
     }
 
-    // Consultar Firestore para verificar si el usuario tiene acceso premium
+    // Función para verificar el acceso premium
     function checkAccess() {
       const user = auth.currentUser;
 
@@ -135,6 +164,12 @@
     auth.onAuthStateChanged(user => {
       if (user) checkAccess();
     });
+
+    // Función de cerrar sesión
+    function logout() {
+      auth.signOut().then(() => location.reload());
+    }
   </script>
 </body>
 </html>
+
