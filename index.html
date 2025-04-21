@@ -41,6 +41,29 @@
   </div>
 
   <button id="checkout-button">Pagar ahora</button>
+<script>
+  // Cargar la clave pública de Stripe
+  const stripe = Stripe('pk_live_51REGgNIqVpsCnB66BP8X030jWjn7A7LC9ZcDBYYup8WSjzhXN68IcMkkJ9ozqgilwR50egglSzVKfflBMPHhDs2K00jHXpsdlZ'); // Tu clave pública de prueba de Stripe
+
+  // Llama a la función de creación de sesión de pago cuando el botón sea presionado
+  document.getElementById('payButton').addEventListener('click', function() {
+    fetch('/create-checkout-session', {
+      method: 'POST',
+    })
+    .then((response) => response.json())  // Esperar la respuesta de la sesión de Stripe
+    .then((sessionId) => {
+      return stripe.redirectToCheckout({ sessionId: sessionId.id });  // Redirige al usuario al checkout de Stripe
+    })
+    .then((result) => {
+      if (result.error) {
+        alert(result.error.message);  // Muestra un error si ocurre algo en la redirección
+      }
+    })
+    .catch((error) => {
+      console.error('Error al crear la sesión de pago:', error);
+    });
+  });
+</script>
 
   <script>
     const firebaseConfig = {
