@@ -136,29 +136,29 @@
     }
 
     // Función para verificar el acceso premium
-    function checkAccess() {
-      const user = auth.currentUser;
+function checkAccess() {
+  const user = auth.currentUser;
 
-      if (user) {
-        // Obtener el documento del usuario en Firestore
-        db.collection("usuarios_premium").doc(user.uid)
-          .get()
-          .then((doc) => {
-            if (doc.exists && doc.data().premium) {
-              // Si el usuario tiene acceso premium, mostrar la sección premium
-              document.getElementById('auth-section').style.display = 'none';
-              document.getElementById('premium-section').style.display = 'block';
-            } else {
-              // Si no tiene acceso premium, mostrar error
-              document.getElementById('auth-section').style.display = 'none';
-              document.getElementById('error-section').style.display = 'block';
-            }
-          })
-          .catch((error) => {
-            console.error("Error obteniendo documento de Firestore:", error);
-          });
-      }
-    }
+  if (user) {
+    // Obtener el documento del usuario en Firestore
+    db.collection("usuarios_premium").doc(user.uid)
+      .get()
+      .then((doc) => {
+        if (doc.exists && doc.data().premium) {
+          // Si el usuario tiene acceso premium, redirige a la zona premium
+          window.location.href = "https://elottoia-premium-app.onrender.com";  // Redirige a la app premium
+        } else {
+          // Si no tiene acceso premium, mostrar error
+          document.getElementById('auth-section').style.display = 'none';
+          document.getElementById('error-section').style.display = 'block';
+        }
+      })
+      .catch((error) => {
+        console.error("Error obteniendo documento de Firestore:", error);
+      });
+  }
+}
+
 
     // Comprobar el estado de autenticación al cargar la página
     auth.onAuthStateChanged(user => {
