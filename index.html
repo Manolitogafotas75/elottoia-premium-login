@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,6 +6,7 @@
   <title>ElottoIA - Login Premium</title>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -45,7 +45,7 @@
     <input type="password" id="password" placeholder="Contraseña"><br/>
     <button onclick="register()">Registrarse</button>
     <button onclick="login()">Iniciar sesión</button>
-    </div>
+  </div>
   <div id="premium-section">
     <h2>🎉 Bienvenido a ElottoIA Premium</h2>
     <p>Aquí va el contenido completo protegido (app, estadísticas, etc).</p>
@@ -57,6 +57,7 @@
     <p>Si ya has pagado, espera activación manual o contáctanos.</p>
     <button onclick="logout()">Cerrar sesión</button>
   </div>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBGUioqYtwpwoaSuQnhoiaTZph0Z2jtHxk",
@@ -64,9 +65,10 @@
       projectId: "elottoia",
       appId: "1:908430131663:web:358849527fe63b95a6d2ba"
     };
-    const premiumEmails = ["usuario1@ejemplo.com", "usuario2@ejemplo.com"];
     firebase.initializeApp(firebaseConfig);
+
     const auth = firebase.auth();
+    const db = firebase.firestore();
 
     function validateEmail(email) {
       return /\S+@\S+\.\S+/.test(email);
@@ -82,7 +84,7 @@
       }
 
       auth.signInWithEmailAndPassword(email, password)
-        .then(() => checkAccess())
+        .then(() => checkAccess())  // Verifica si tiene acceso premium
         .catch(error => alert(error.message));
     }
 
@@ -96,7 +98,7 @@
       }
 
       auth.createUserWithEmailAndPassword(email, password)
-        .then(() => checkAccess())
+        .then(() => checkAccess())  // Verifica si tiene acceso premium
         .catch(error => alert(error.message));
     }
 
@@ -104,17 +106,32 @@
       auth.signOut().then(() => location.reload());
     }
 
+    // Consultar Firestore para verificar si el usuario tiene acceso premium
     function checkAccess() {
       const user = auth.currentUser;
-      if (user && premiumEmails.includes(user.email)) {
-        document.getElementById('auth-section').style.display = 'none';
-        document.getElementById('premium-section').style.display = 'block';
-      } else {
-        document.getElementById('auth-section').style.display = 'none';
-        document.getElementById('error-section').style.display = 'block';
+
+      if (user) {
+        // Obtener el documento del usuario en Firestore
+        db.collection("usuarios_premium").doc(user.uid)
+          .get()
+          .then((doc) => {
+            if (doc.exists && doc.data().premium) {
+              // Si el usuario tiene acceso premium, mostrar la sección premium
+              document.getElementById('auth-section').style.display = 'none';
+              document.getElementById('premium-section').style.display = 'block';
+            } else {
+              // Si no tiene acceso premium, mostrar error
+              document.getElementById('auth-section').style.display = 'none';
+              document.getElementById('error-section').style.display = 'block';
+            }
+          })
+          .catch((error) => {
+            console.error("Error obteniendo documento de Firestore:", error);
+          });
       }
     }
 
+    // Comprobar el estado de autenticación al cargar la página
     auth.onAuthStateChanged(user => {
       if (user) checkAccess();
     });
