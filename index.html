@@ -45,7 +45,7 @@
     <input type="password" id="password" placeholder="Contraseña"><br/>
     <button onclick="register()">Registrarse</button>
     <button onclick="login()">Iniciar sesión</button>
-    </div>
+  </div>
   <div id="premium-section">
     <h2>🎉 Bienvenido a ElottoIA Premium</h2>
     <p>Aquí va el contenido completo protegido (app, estadísticas, etc).</p>
@@ -74,6 +74,7 @@
       return /\S+@\S+\.\S+/.test(email);
     }
 
+    // Función de inicio de sesión
     function login() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
@@ -88,6 +89,7 @@
         .catch(error => alert(error.message));
     }
 
+    // Función de registro
     function register() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
@@ -97,16 +99,17 @@
         return;
       }
 
+      // Crea el nuevo usuario con Firebase Authentication
       auth.createUserWithEmailAndPassword(email, password)
         .then((userCredential) => {
           const user = userCredential.user;
           console.log("Usuario registrado:", user);
 
+          // Después de registrarse, guardar los datos en Firestore
           saveUserToFirestore(user.uid, email);
 
-          // Redirige al login después del registro
-          alert("Por favor, inicia sesión para continuar.");
-          document.getElementById('auth-section').style.display = 'block';
+          // Luego de registrarse, redirige al login
+          window.location.href = '/login';  // O la URL que desees para el login
         })
         .catch((error) => {
           console.error("Error de registro:", error.message);
@@ -114,12 +117,15 @@
         });
     }
 
+    // Función para guardar el usuario en Firestore
     function saveUserToFirestore(uid, email) {
       const db = firebase.firestore();
+
+      // Guardamos los datos del usuario en Firestore en la colección "usuarios_premium"
       db.collection("usuarios_premium").doc(uid).set({
         email: email,
         premium: false,  // Inicialmente se establece como false, se actualizará después al confirmar el pago
-        fecha_registro: firebase.firestore.FieldValue.serverTimestamp()
+        fecha_registro: firebase.firestore.FieldValue.serverTimestamp()  // Guardamos la fecha de registro
       })
       .then(() => {
         console.log("Usuario guardado correctamente en Firestore");
@@ -129,17 +135,20 @@
       });
     }
 
+    // Función para verificar el acceso premium
     function checkAccess() {
       const user = auth.currentUser;
 
       if (user) {
+        // Obtener el documento del usuario en Firestore
         db.collection("usuarios_premium").doc(user.uid)
           .get()
           .then((doc) => {
             if (doc.exists && doc.data().premium) {
-              document.getElementById('auth-section').style.display = 'none';
-              document.getElementById('premium-section').style.display = 'block';
+              // Si el usuario tiene acceso premium, redirige a la zona premium
+              window.location.href = "https://elottoia-premium-app.onrender.com";  // Redirige a la app premium
             } else {
+              // Si no tiene acceso premium, mostrar error
               document.getElementById('auth-section').style.display = 'none';
               document.getElementById('error-section').style.display = 'block';
             }
@@ -150,10 +159,12 @@
       }
     }
 
+    // Comprobar el estado de autenticación al cargar la página
     auth.onAuthStateChanged(user => {
       if (user) checkAccess();
     });
 
+    // Función de cerrar sesión
     function logout() {
       auth.signOut().then(() => location.reload());
     }
