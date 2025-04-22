@@ -40,7 +40,7 @@
     <button onclick="login()">Iniciar sesión</button>
   </div>
 
-  <button id="checkout-button">Pagar ahora</button>
+  <button id="payButton">Pagar ahora</button>
 <script>
   // Cargar la clave pública de Stripe
   const stripe = Stripe('pk_live_51REGgNIqVpsCnB66BP8X030jWjn7A7LC9ZcDBYYup8WSjzhXN68IcMkkJ9ozqgilwR50egglSzVKfflBMPHhDs2K00jHXpsdlZ'); // Tu clave pública de prueba de Stripe
@@ -118,7 +118,7 @@
     }
 
     // Botón de pago
-    document.getElementById('checkout-button').addEventListener('click', function () {
+    document.getElementById('payButton').addEventListener('click', function () {
       fetch('/api/create_checkout_session', { method: 'POST' })
         .then(function (response) {
           return response.json();
