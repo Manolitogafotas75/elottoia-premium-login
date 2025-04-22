@@ -43,29 +43,6 @@
   <button id="payButton">Pagar ahora</button>
 
   <script>
-    // Cargar la clave pública de Stripe
-    const stripe = Stripe('pk_live_51REGgNIqVpsCnB66BP8X030jWjn7A7LC9ZcDBYYup8WSjzhXN68IcMkkJ9ozqgilwR50egglSzVKfflBMPHhDs2K00jHXpsdlZ'); // Tu clave pública de prueba de Stripe
-
-    // Función para crear la sesión de pago de Stripe
-    document.getElementById('payButton').addEventListener('click', function() {
-      fetch('/api/create_checkout_session', {
-        method: 'POST',
-      })
-      .then((response) => response.json())  // Esperar la respuesta de la sesión de Stripe
-      .then((sessionId) => {
-        return stripe.redirectToCheckout({ sessionId: sessionId.id });  // Redirige al usuario al checkout de Stripe
-      })
-      .then((result) => {
-        if (result.error) {
-          alert(result.error.message);  // Muestra un error si ocurre algo en la redirección
-        }
-      })
-      .catch((error) => {
-        console.error('Error al crear la sesión de pago:', error);
-      });
-    });
-
-    // Configuración de Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBGUioqYtwpwoaSuQnhoiaTZph0Z2jtHxk",
       authDomain: "elottoia.firebaseapp.com",
@@ -76,6 +53,9 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+
+    // Configuración de Stripe
+    const stripe = Stripe('pk_live_51REGgNIqVpsCnB66BP8X030jWjn7A7LC9ZcDBYYup8WSjzhXN68IcMkkJ9ozqgilwR50egglSzVKfflBMPHhDs2K00jHXpsdlZ');
 
     // Función de login
     function login() {
@@ -113,6 +93,25 @@
           .catch((error) => alert("Error verificando el acceso."));
       }
     }
+
+    // Botón de pago
+    document.getElementById('payButton').addEventListener('click', function () {
+      fetch('/api/create_checkout_session', { method: 'POST' })
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (sessionId) {
+          return stripe.redirectToCheckout({ sessionId: sessionId.id });
+        })
+        .then(function (result) {
+          if (result.error) {
+            alert(result.error.message);
+          }
+        })
+        .catch(function (error) {
+          console.error('Error:', error);
+        });
+    });
   </script>
 </body>
 </html>
